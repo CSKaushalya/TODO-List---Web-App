@@ -1,0 +1,34 @@
+.bg-gray-100 {
+    background-color: 257180 !important;
+}
+
+.shadow-lg{
+    background-color: F2E5BF !important ;
+}
+
+.bg-blue-500 {
+    background-color: FD8B51 !important ;
+}
+
+.text-white {
+    color: FFFF !important ;
+}
+
+.text-gray-500 {
+    color: 009FBD !important ;
+    font-weight: 500 !important;
+    font-size: 16px !important;
+    margin-left: 20px !important;
+}
+
+.font-medium {
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    color:071952 !important ;
+}
+
+.font-bold {
+    font-size: 30px !important;
+    text-align: center !important;
+    margin-bottom: 35px !important;
+}

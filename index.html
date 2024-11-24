@@ -1,0 +1,94 @@
+<html>
+<head>
+    <title>TODO List App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold mb-4">TODO LIST</h1>
+        <div class="mb-4">
+            <input type="text" id="task" placeholder="Enter your task" class="w-full p-2 border border-gray-300 rounded mb-2">
+            <input type="datetime-local" id="datetime" class="w-full p-2 border border-gray-300 rounded mb-2">
+            <button id="addTask" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Add Task</button>
+        </div>
+        <div>
+            <h2 class="text-xl font-semibold mb-2">Pending Tasks</h2>
+            <ul id="pendingTasks" class="list-disc pl-5 space-y-2">
+                <!-- Pending tasks will be added here -->
+            </ul>
+        </div>
+        <div class="mt-6">
+            <h2 class="text-xl font-semibold mb-2">Completed Tasks</h2>
+            <ul id="completedTasks" class="list-disc pl-5 space-y-2">
+                <!-- Completed tasks will be added here -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('addTask').addEventListener('click', function() {
+            const taskInput = document.getElementById('task');
+            const datetimeInput = document.getElementById('datetime');
+            const task = taskInput.value;
+            const datetime = datetimeInput.value;
+
+            if (task && datetime) {
+                const taskItem = document.createElement('li');
+                taskItem.className = 'flex justify-between items-center p-2 border border-gray-300 rounded';
+
+                const taskContent = document.createElement('div');
+                taskContent.className = 'flex-1';
+                taskContent.innerHTML = `<span class="font-medium">${task}</span> <span class="text-gray-500 text-sm">(${new Date(datetime).toLocaleString()})</span>`;
+
+                const taskActions = document.createElement('div');
+                taskActions.className = 'flex space-x-2';
+
+                const completeButton = document.createElement('button');
+                completeButton.className = 'text-green-500 hover:text-green-700';
+                completeButton.innerHTML = '<i class="fas fa-check"></i>';
+                completeButton.addEventListener('click', function() {
+                    document.getElementById('completedTasks').appendChild(taskItem);
+                    taskItem.classList.add('line-through', 'text-gray-500');
+                    completeButton.remove();
+                });
+
+                const updateButton = document.createElement('button');
+                updateButton.className = 'text-blue-500 hover:text-blue-700';
+                updateButton.innerHTML = '<i class="fas fa-edit"></i>';
+                updateButton.addEventListener('click', function() {
+                    taskInput.value = task;
+                    datetimeInput.value = datetime;
+                    taskItem.remove();
+                });
+
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'text-red-500 hover:text-red-700';
+                deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteButton.addEventListener('click', function() {
+                    taskItem.remove();
+                });
+
+                taskActions.appendChild(completeButton);
+                taskActions.appendChild(updateButton);
+                taskActions.appendChild(deleteButton);
+
+                taskItem.appendChild(taskContent);
+                taskItem.appendChild(taskActions);
+
+                document.getElementById('pendingTasks').appendChild(taskItem);
+
+                taskInput.value = '';
+                datetimeInput.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
