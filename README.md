@@ -30,7 +30,7 @@
 
 | Dark Mode (Midnight) | Light Mode (Cloud) |
 | :--- | :--- |
-| ![Dark Mode](https://via.placeholder.com/400x250?text=Dark+Mode+Preview) | ![Light Mode](https://via.placeholder.com/400x250?text=Light+Mode+Preview) |
+| ![Dark Mode](assets/dark-screenshot.png) | ![Light Mode](assets/light-screenshot.png) |
 
 ---
 
