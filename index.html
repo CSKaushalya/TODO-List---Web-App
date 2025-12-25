@@ -1,94 +1,225 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>TODO List App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Task Master Pro</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="style.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-        }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100 p-6">
-    <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <h1 class="text-2xl font-bold mb-4">TODO LIST</h1>
-        <div class="mb-4">
-            <input type="text" id="task" placeholder="Enter your task" class="w-full p-2 border border-gray-300 rounded mb-2">
-            <input type="datetime-local" id="datetime" class="w-full p-2 border border-gray-300 rounded mb-2">
-            <button id="addTask" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Add Task</button>
+<body class="min-h-screen p-4 md:p-10 flex items-center justify-center">
+
+    <button id="theme-toggle" onclick="toggleTheme()">
+        <i id="theme-icon" class="fas fa-moon"></i>
+    </button>
+
+    <div class="max-w-2xl w-full main-card p-6 md:p-10 rounded-3xl shadow-2xl relative overflow-hidden">
+        <h1 class="text-4xl font-extrabold mb-8 text-center tracking-tight main-title">MISSION CONTROL</h1>
+        
+        <div class="space-y-4 mb-8">
+            <input type="text" id="task" placeholder="Define your next mission..." class="w-full p-4 rounded-xl border-none outline-none shadow-lg custom-input">
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input type="text" id="datetime" placeholder="📅 Date & Time" class="p-3 rounded-xl border-none outline-none shadow-md custom-input cursor-pointer">
+                <select id="category" class="p-3 rounded-xl border-none outline-none shadow-md custom-input">
+                    <option value="Personal">🏠 Personal</option>
+                    <option value="Work">💼 Work</option>
+                    <option value="Shopping">🛒 Shopping</option>
+                    <option value="Health">💪 Health</option>
+                </select>
+                <select id="priority" class="p-3 rounded-xl border-none outline-none shadow-md custom-input">
+                    <option value="Low">Low</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+            
+            <button id="addTask" class="w-full py-4 rounded-xl font-bold uppercase tracking-widest hover:opacity-90 transition transform active:scale-95 shadow-xl btn-primary">
+                Deploy Task
+            </button>
         </div>
-        <div>
-            <h2 class="text-xl font-semibold mb-2">Pending Tasks</h2>
-            <ul id="pendingTasks" class="list-disc pl-5 space-y-2">
-                <!-- Pending tasks will be added here -->
-            </ul>
+
+        <div class="mb-8 p-6 rounded-2xl stats-card shadow-inner border border-white/10">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-sm font-semibold opacity-80">Operational Success</span>
+                <span id="completionRate" class="text-sm font-bold">0%</span>
+            </div>
+            <div class="w-full bg-black/20 rounded-full h-3">
+                <div id="progressBar" class="progress-fill h-3 rounded-full transition-all duration-1000" style="width: 0%"></div>
+            </div>
+            <div class="flex justify-around mt-6 pt-4 border-t border-white/10">
+                <div class="text-center"><div id="totalCount" class="text-2xl font-bold">0</div><div class="text-[10px] uppercase opacity-60">Total</div></div>
+                <div class="text-center"><div id="pendingCount" class="text-2xl font-bold text-yellow-400">0</div><div class="text-[10px] uppercase opacity-60">Pending</div></div>
+                <div class="text-center"><div id="completedCount" class="text-2xl font-bold text-cyan-400">0</div><div class="text-[10px] uppercase opacity-60">Cleared</div></div>
+            </div>
         </div>
-        <div class="mt-6">
-            <h2 class="text-xl font-semibold mb-2">Completed Tasks</h2>
-            <ul id="completedTasks" class="list-disc pl-5 space-y-2">
-                <!-- Completed tasks will be added here -->
-            </ul>
+
+        <div class="flex flex-col md:flex-row gap-3 mb-8">
+            <div class="relative flex-1">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 opacity-50"></i>
+                <input type="text" id="searchInput" placeholder="Search operations..." onkeyup="filterTasks()" class="w-full pl-12 pr-4 py-2 rounded-lg border-none outline-none custom-input">
+            </div>
+            <div class="flex gap-2">
+                <button onclick="exportToPDF()" class="p-2 px-3 bg-red-500/20 border border-red-500/50 rounded-lg hover:bg-red-500/40 transition text-[10px] font-bold">PDF</button>
+                <button onclick="exportToExcel()" class="p-2 px-3 bg-green-500/20 border border-green-500/50 rounded-lg hover:bg-green-500/40 transition text-[10px] font-bold">EXCEL</button>
+                <button onclick="resetData()" class="p-2 px-3 bg-gray-500/20 border border-gray-500/50 rounded-lg hover:bg-red-600 hover:text-white transition text-[10px] font-bold">RESET</button>
+            </div>
         </div>
+
+        <h2 class="text-lg font-bold mb-4 opacity-90 text-yellow-500"><i class="fas fa-bolt"></i> Active</h2>
+        <ul id="pendingTasks" class="space-y-3 mb-10"></ul>
+
+        <h2 class="text-lg font-bold mb-4 opacity-90 text-cyan-500"><i class="fas fa-check-double"></i> Completed</h2>
+        <ul id="completedTasks" class="space-y-3"></ul>
     </div>
 
     <script>
-        document.getElementById('addTask').addEventListener('click', function() {
+        flatpickr("#datetime", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            minDate: "today",
+            theme: "dark"
+        });
+
+        function saveTasks() {
+            const tasks = [];
+            document.querySelectorAll('.task-item').forEach(item => {
+                tasks.push({
+                    Task: item.querySelector('.task-main-text').innerText,
+                    Date: item.getAttribute('data-date'),
+                    Priority: item.getAttribute('data-priority'),
+                    Category: item.getAttribute('data-category'),
+                    Status: item.closest('ul').id === 'completedTasks' ? 'Completed' : 'Pending'
+                });
+            });
+            localStorage.setItem('royalTasks', JSON.stringify(tasks));
+        }
+
+        function updateStats() {
+            const pending = document.querySelectorAll('#pendingTasks li').length;
+            const completed = document.querySelectorAll('#completedTasks li').length;
+            const total = pending + completed;
+            const rate = total === 0 ? 0 : Math.round((completed / total) * 100);
+            document.getElementById('totalCount').innerText = total;
+            document.getElementById('pendingCount').innerText = pending;
+            document.getElementById('completedCount').innerText = completed;
+            document.getElementById('completionRate').innerText = rate + "%";
+            document.getElementById('progressBar').style.width = rate + "%";
+        }
+
+        // RESET DATA LOGIC
+        function resetData() {
+            if (confirm("⚠️ WARNING: This will permanently delete all your tasks. Are you sure?")) {
+                localStorage.removeItem('royalTasks');
+                document.getElementById('pendingTasks').innerHTML = '';
+                document.getElementById('completedTasks').innerHTML = '';
+                updateStats();
+            }
+        }
+
+        document.getElementById('addTask').addEventListener('click', () => {
             const taskInput = document.getElementById('task');
-            const datetimeInput = document.getElementById('datetime');
-            const task = taskInput.value;
-            const datetime = datetimeInput.value;
-
-            if (task && datetime) {
-                const taskItem = document.createElement('li');
-                taskItem.className = 'flex justify-between items-center p-2 border border-gray-300 rounded';
-
-                const taskContent = document.createElement('div');
-                taskContent.className = 'flex-1';
-                taskContent.innerHTML = `<span class="font-medium">${task}</span> <span class="text-gray-500 text-sm">(${new Date(datetime).toLocaleString()})</span>`;
-
-                const taskActions = document.createElement('div');
-                taskActions.className = 'flex space-x-2';
-
-                const completeButton = document.createElement('button');
-                completeButton.className = 'text-green-500 hover:text-green-700';
-                completeButton.innerHTML = '<i class="fas fa-check"></i>';
-                completeButton.addEventListener('click', function() {
-                    document.getElementById('completedTasks').appendChild(taskItem);
-                    taskItem.classList.add('line-through', 'text-gray-500');
-                    completeButton.remove();
-                });
-
-                const updateButton = document.createElement('button');
-                updateButton.className = 'text-blue-500 hover:text-blue-700';
-                updateButton.innerHTML = '<i class="fas fa-edit"></i>';
-                updateButton.addEventListener('click', function() {
-                    taskInput.value = task;
-                    datetimeInput.value = datetime;
-                    taskItem.remove();
-                });
-
-                const deleteButton = document.createElement('button');
-                deleteButton.className = 'text-red-500 hover:text-red-700';
-                deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
-                deleteButton.addEventListener('click', function() {
-                    taskItem.remove();
-                });
-
-                taskActions.appendChild(completeButton);
-                taskActions.appendChild(updateButton);
-                taskActions.appendChild(deleteButton);
-
-                taskItem.appendChild(taskContent);
-                taskItem.appendChild(taskActions);
-
-                document.getElementById('pendingTasks').appendChild(taskItem);
-
-                taskInput.value = '';
-                datetimeInput.value = '';
+            const dateInput = document.getElementById('datetime');
+            if (taskInput.value && dateInput.value) {
+                createTaskElement(taskInput.value, dateInput.value, document.getElementById('priority').value, document.getElementById('category').value, false);
+                taskInput.value = ''; dateInput.value = '';
+                saveTasks(); updateStats();
             }
         });
+
+        function createTaskElement(text, date, priority, category, isDone) {
+            const li = document.createElement('li');
+            li.className = `flex justify-between items-center p-4 rounded-2xl task-item shadow-lg border border-white/5 ${isDone ? 'opacity-40' : ''}`;
+            li.setAttribute('data-date', date);
+            li.setAttribute('data-priority', priority);
+            li.setAttribute('data-category', category);
+
+            li.innerHTML = `
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="badge-${priority.toLowerCase() === 'medium' ? 'med' : priority.toLowerCase()}">${priority}</span>
+                        <span class="text-[10px] font-bold opacity-40 tracking-widest">${category.toUpperCase()}</span>
+                        <div class="task-main-text font-semibold ${isDone ? 'line-through' : ''}">${text}</div>
+                    </div>
+                    <div class="text-[11px] opacity-50 mt-1"><i class="far fa-clock mr-1"></i> ${new Date(date).toLocaleString()}</div>
+                </div>
+                <div class="flex space-x-3 ml-4">
+                    ${!isDone ? `
+                    <button onclick="completeTask(this)" class="text-cyan-400 hover:scale-110 transition"><i class="fas fa-check-circle fa-lg"></i></button>
+                    <button onclick="editTask(this)" class="text-indigo-400 hover:scale-110 transition"><i class="fas fa-edit"></i></button>
+                    ` : ''}
+                    <button onclick="deleteTask(this)" class="text-pink-500 hover:scale-110 transition"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            `;
+            document.getElementById(isDone ? 'completedTasks' : 'pendingTasks').appendChild(li);
+        }
+
+        function completeTask(btn) {
+            const li = btn.closest('li');
+            li.querySelector('.task-main-text').classList.add('line-through');
+            document.getElementById('completedTasks').appendChild(li);
+            btn.nextElementSibling?.remove();
+            btn.remove(); saveTasks(); updateStats();
+        }
+
+        function editTask(btn) {
+            const li = btn.closest('li');
+            document.getElementById('task').value = li.querySelector('.task-main-text').innerText;
+            document.getElementById('datetime').value = li.getAttribute('data-date');
+            document.getElementById('priority').value = li.getAttribute('data-priority');
+            document.getElementById('category').value = li.getAttribute('data-category');
+            li.remove(); saveTasks(); updateStats();
+        }
+
+        function deleteTask(btn) { btn.closest('li').remove(); saveTasks(); updateStats(); }
+
+        function filterTasks() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.task-item').forEach(item => {
+                item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+            });
+        }
+
+        function exportToExcel() {
+            const tasks = JSON.parse(localStorage.getItem('royalTasks') || "[]");
+            const ws = XLSX.utils.json_to_sheet(tasks);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Tasks");
+            XLSX.writeFile(wb, "Tasks.xlsx");
+        }
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const tasks = JSON.parse(localStorage.getItem('royalTasks') || "[]");
+            doc.text("Task Report", 20, 20);
+            tasks.forEach((t, i) => doc.text(`${i+1}. [${t.Status}] ${t.Task}`, 20, 30 + (i*10)));
+            doc.save("Tasks.pdf");
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            document.getElementById('theme-icon').className = isLight ? 'fas fa-moon' : 'fas fa-sun';
+            localStorage.setItem('royalTheme', isLight ? 'light' : 'dark');
+        }
+
+        window.onload = () => {
+            const saved = localStorage.getItem('royalTasks');
+            if (saved) JSON.parse(saved).forEach(t => createTaskElement(t.Task, t.Date, t.Priority, t.Category, t.Status === 'Completed'));
+            updateStats();
+            if (localStorage.getItem('royalTheme') === 'light') toggleTheme();
+        };
     </script>
 </body>
 </html>
